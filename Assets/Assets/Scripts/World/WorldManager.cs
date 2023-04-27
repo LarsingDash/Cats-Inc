@@ -17,7 +17,7 @@ namespace Assets.Scripts.World
             worldBounds = new Rect(0,0, 10, 50);
             SetBackground();
             
-            GameController.finishStart(GetType().Name, Init);
+            GameController.finishStart(GameController.StartupOption.WorldManager, Init);
         }
 
         private void Init()

@@ -6,18 +6,27 @@ namespace Assets.Scripts.Other
 {
 	public static class GameController
 	{
-		//List of startup actions so that they can be invoked in a controlled sequence
-		private static readonly Dictionary<string, Action> startup = new()
+		public enum StartupOption
 		{
-			{ "WorldManager", null },
-			{ "CameraController", null },
-			{ "PlayerManager", null },
-			{ "StartupBegin", null },
-			{ "StartupEnd", null },
+			StartupBegin,
+			StartupEnd,
+			WorldManager,
+			AlignCamera,
+			PlayerManager,
+		}
+		
+		//List of startup actions so that they can be invoked in a controlled sequence
+		private static readonly Dictionary<StartupOption, Action> startup = new()
+		{
+			{ StartupOption.WorldManager, null },
+			{ StartupOption.AlignCamera, null },
+			{ StartupOption.PlayerManager, null },
+			{ StartupOption.StartupBegin, null },
+			{ StartupOption.StartupEnd, null },
 		};
 
 		//Notify the list that the caller's Start() is finished, start controlled startup sequence once all are finished
-		public static void finishStart(string name, Action init)
+		public static void finishStart(StartupOption name, Action init)
 		{
 			//Typo check
 			if (startup.ContainsKey(name))
@@ -30,15 +39,15 @@ namespace Assets.Scripts.Other
 					return;
 
 				//Display startup screen
-				startup["StartupBegin"]();
+				startup[StartupOption.StartupBegin]();
 				
 				//Startup Sequence
-				startup["WorldManager"]();
-				startup["CameraController"]();
-				startup["PlayerManager"]();
+				startup[StartupOption.WorldManager]();
+				startup[StartupOption.AlignCamera]();
+				startup[StartupOption.PlayerManager]();
 				
 				//Hide startup screen
-				startup["StartupEnd"]();
+				startup[StartupOption.StartupEnd]();
 			}
 			else
 			{

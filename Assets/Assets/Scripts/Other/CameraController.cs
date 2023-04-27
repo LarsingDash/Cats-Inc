@@ -23,10 +23,10 @@ namespace Assets.Scripts.Other
 		private void Start()
 		{
 			gameCamera = GetComponent<Camera>();
-			GameController.finishStart(GetType().Name, Init);
+			GameController.finishStart(GameController.StartupOption.AlignCamera, AlignCamera);
 		}
 		
-		private void Init()
+		private void AlignCamera()
 		{
 			//Setting vars
 			var worldBounds = worldManager.worldBounds;
@@ -38,7 +38,7 @@ namespace Assets.Scripts.Other
 			trans.position = newPosition;
 			cameraTarget = newPosition;
 			
-			print("Camera Init finished");
+			print("AlignCamera finished");
 		}
 
 		private void FixedUpdate()

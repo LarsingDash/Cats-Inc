@@ -8,9 +8,9 @@ namespace Assets.Scripts.Player
        
         private void Start()
         {
-            GameController.finishStart("StartupBegin", StartupBegin);
-            GameController.finishStart("StartupEnd", StartupEnd);
-            GameController.finishStart(GetType().Name, Init);
+            GameController.finishStart(GameController.StartupOption.StartupBegin, StartupBegin);
+            GameController.finishStart(GameController.StartupOption.StartupEnd, StartupEnd);
+            GameController.finishStart(GameController.StartupOption.PlayerManager, Init);
         }
 
         private void Init()
