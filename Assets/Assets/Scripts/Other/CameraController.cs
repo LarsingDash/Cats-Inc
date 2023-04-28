@@ -37,8 +37,6 @@ namespace Assets.Scripts.Other
 			var newPosition = new Vector3(worldBounds.x + worldBounds.width / 2, worldBounds.y + worldBounds.height / 2, currentPos.z);
 			trans.position = newPosition;
 			cameraTarget = newPosition;
-			
-			print("AlignCamera finished");
 		}
 
 		private void FixedUpdate()

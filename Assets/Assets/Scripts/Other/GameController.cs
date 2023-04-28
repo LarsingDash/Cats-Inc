@@ -10,7 +10,9 @@ namespace Assets.Scripts.Other
 		{
 			StartupBegin,
 			StartupEnd,
-			WorldManager,
+			WorldBackground,
+			WorldImport,
+			WorldLaunch,
 			AlignCamera,
 			PlayerManager,
 		}
@@ -18,11 +20,13 @@ namespace Assets.Scripts.Other
 		//List of startup actions so that they can be invoked in a controlled sequence
 		private static readonly Dictionary<StartupOption, Action> startup = new()
 		{
-			{ StartupOption.WorldManager, null },
-			{ StartupOption.AlignCamera, null },
-			{ StartupOption.PlayerManager, null },
 			{ StartupOption.StartupBegin, null },
 			{ StartupOption.StartupEnd, null },
+			{ StartupOption.WorldBackground, null },
+			{ StartupOption.WorldImport, null },
+			{ StartupOption.WorldLaunch, null },
+			{ StartupOption.AlignCamera, null },
+			{ StartupOption.PlayerManager, null },
 		};
 
 		//Notify the list that the caller's Start() is finished, start controlled startup sequence once all are finished
@@ -42,9 +46,15 @@ namespace Assets.Scripts.Other
 				startup[StartupOption.StartupBegin]();
 				
 				//Startup Sequence
-				startup[StartupOption.WorldManager]();
+				startup[StartupOption.WorldBackground]();
+				startup[StartupOption.WorldImport]();
+				
 				startup[StartupOption.AlignCamera]();
+				
 				startup[StartupOption.PlayerManager]();
+
+				//Launch Main Components
+				startup[StartupOption.WorldLaunch]();
 				
 				//Hide startup screen
 				startup[StartupOption.StartupEnd]();
