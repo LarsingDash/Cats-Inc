@@ -1,7 +1,7 @@
-using Assets.Scripts.Other;
+using Cats_Inc.Scripts.Other;
 using UnityEngine;
 
-namespace Assets.Scripts.Player
+namespace Cats_Inc.Scripts.Player
 {
     public class PlayerManager : MonoBehaviour
     {

@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.World
+﻿namespace Cats_Inc.Scripts.World
 {
 	public struct Stats
 	{

@@ -1,8 +1,8 @@
 using System;
-using Assets.Scripts.World;
+using Cats_Inc.Scripts.World;
 using UnityEngine;
 
-namespace Assets.Scripts.Other
+namespace Cats_Inc.Scripts.Other
 {
 	public class CameraController : MonoBehaviour
 	{

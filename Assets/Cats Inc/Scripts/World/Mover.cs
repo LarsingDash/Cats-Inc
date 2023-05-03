@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.World
+namespace Cats_Inc.Scripts.World
 {
 	public class Mover : MonoBehaviour
 	{

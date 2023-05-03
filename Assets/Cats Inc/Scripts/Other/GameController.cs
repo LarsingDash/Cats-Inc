@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assets.Scripts.Other
+namespace Cats_Inc.Scripts.Other
 {
 	public static class GameController
 	{

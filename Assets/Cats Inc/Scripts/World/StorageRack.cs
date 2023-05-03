@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Assets.Scripts.World
+namespace Cats_Inc.Scripts.World
 {
 	public class StorageRack : MonoBehaviour
 	{

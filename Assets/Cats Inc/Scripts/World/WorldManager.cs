@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.Other;
+using Cats_Inc.Scripts.Other;
 using UnityEngine;
 
-namespace Assets.Scripts.World
+namespace Cats_Inc.Scripts.World
 {
 	public class WorldManager : MonoBehaviour
 	{
