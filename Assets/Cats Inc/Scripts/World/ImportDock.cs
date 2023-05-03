@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections;
+using Cats_Inc.Scripts.Other;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 namespace Cats_Inc.Scripts.World
@@ -8,6 +12,7 @@ namespace Cats_Inc.Scripts.World
 	{
 		//Components
 		private SpriteRenderer spriteRenderer;
+		private CustomText customText;
 
 		//Truck
 		private bool shouldImport;
@@ -16,8 +21,13 @@ namespace Cats_Inc.Scripts.World
 
 		public void Init(Sprite square)
 		{
+			transform.position = new Vector3(5, 1, transform.position.z);
+			
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
+
+			customText = new CustomText(transform);
+			customText.ChangeText("Waiting");
 		}
 
 		public void Launch()
@@ -25,9 +35,7 @@ namespace Cats_Inc.Scripts.World
 			shouldImport = true;
 			amountRemaining = 0;
 			amountReserved = 0;
-
-			spriteRenderer.color = Color.blue;
-
+			
 			StartCoroutine(DockBehaviour());
 		}
 
@@ -52,17 +60,13 @@ namespace Cats_Inc.Scripts.World
 		{
 			//Refill truck
 			amountRemaining = WorldManager.stats.importTruckMax;
-
-			print("Docked");
-
-			var val = amountRemaining / (float)WorldManager.stats.importTruckMax;
-			spriteRenderer.color = new Color(val, val, val);
+			
+			customText.ChangeText(amountRemaining.ToString());
 		}
 
 		private void ReleaseTruck()
 		{
-			print("Released");
-			spriteRenderer.color = Color.red;
+			customText.ChangeText("Waiting");
 		}
 
 		public bool AttemptToClaim()
@@ -80,10 +84,8 @@ namespace Cats_Inc.Scripts.World
 
 			amountRemaining = Math.Max(0, amountRemaining - pickup);
 			amountReserved = Math.Max(0, amountReserved - moverMax); //todo can maybe softlock when changing moverMax mid-pickup?
-			print("Truck: " + amountRemaining);
 
-			var val = amountRemaining / (float)WorldManager.stats.importTruckMax;
-			spriteRenderer.color = new Color(val, val, val);
+			customText.ChangeText(amountRemaining.ToString());
 
 			return pickup;
 		}

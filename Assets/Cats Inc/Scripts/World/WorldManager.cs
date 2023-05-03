@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cats_Inc.Scripts.Other;
+using TMPro;
 using UnityEngine;
 
 namespace Cats_Inc.Scripts.World
@@ -23,10 +24,9 @@ namespace Cats_Inc.Scripts.World
 		/** Init **/
 		private void Start()
 		{
-			//todo fix when height = 20
 			worldBounds = new Rect(0, 0, 10, 50);
 
-			stats = new Stats(10, 2, 19);
+			stats = new Stats(10, 2, 20);
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
@@ -77,7 +77,7 @@ namespace Cats_Inc.Scripts.World
 			var mover = moverObject.GetComponent<Mover>();
 			importMovers.Add(mover);
 
-			mover.Init(ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRouteForDelivery, rack.Deliver);
+			mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRouteForDelivery, rack.Deliver);
 		}
 
 		private void Launch()
@@ -123,7 +123,6 @@ namespace Cats_Inc.Scripts.World
 
 		private int ImportCollect(int dock)
 		{
-			print("Collected");
 			return importDocks[dock].Pickup();
 		}
 

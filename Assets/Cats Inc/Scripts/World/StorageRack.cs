@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cats_Inc.Scripts.Other;
+using UnityEngine;
 
 namespace Cats_Inc.Scripts.World
 {
@@ -6,17 +7,20 @@ namespace Cats_Inc.Scripts.World
 	{
 		//Components
 		private SpriteRenderer spriteRenderer;
+		private CustomText customText;
 
 		//Values
 		private int storedAmount;
 
 		public void Init(Sprite square)
 		{
+			transform.position = new Vector3(5, 10, transform.position.z);
+
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
-			TempColor();
 
-			transform.Translate(5, 0, 0);
+			customText = new CustomText(transform);
+			customText.ChangeText("Empty");
 		}
 
 		public bool IsFull()
@@ -26,27 +30,24 @@ namespace Cats_Inc.Scripts.World
 
 		public int Deliver(int amount)
 		{
-			print($"Delivery: {amount}");
 			var max = WorldManager.stats.importRackMax;
 			var difference = storedAmount + amount - max;
 
 			if (difference > 0)
 			{
 				storedAmount = max;
-				TempColor();
+				UpdateText(max);
 				return difference;
 			}
 
 			storedAmount += amount;
-			TempColor();
+			UpdateText(max);
 			return 0;
 		}
 
-		private void TempColor()
+		private void UpdateText(int max)
 		{
-			print("Rack: " + storedAmount);
-			var val = storedAmount / (float)WorldManager.stats.importRackMax;
-			spriteRenderer.color = new Color(val, val, val);
+			customText.ChangeText(storedAmount == max ? "Full" : storedAmount.ToString());
 		}
 
 		private bool first;
@@ -58,7 +59,7 @@ namespace Cats_Inc.Scripts.World
 				{
 					first = false;
 					storedAmount = 0;
-					TempColor();
+					customText.ChangeText("Empty");
 				}
 			}
 			else

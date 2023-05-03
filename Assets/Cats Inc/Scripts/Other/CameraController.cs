@@ -80,8 +80,7 @@ namespace Cats_Inc.Scripts.Other
 				var bounds = worldManager.worldBounds;
 				cameraHeight = gameCamera.orthographicSize;
 				cameraWidth = cameraHeight * Screen.width / Screen.height;
-
-				//Clamp camera horizontally
+				
 				var currentPos = cameraTransform.position;
 				var posClone = currentPos;
 				posClone.y = Math.Clamp(currentPos.y, bounds.y + cameraHeight, bounds.height - cameraHeight);
