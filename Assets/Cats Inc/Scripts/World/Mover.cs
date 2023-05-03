@@ -14,30 +14,40 @@ namespace Cats_Inc.Scripts.World
 		
 		//Vars
 		private bool shouldPickup;
+		private int holdingAmount;
+
 		private List<Vector2> activeRoute;
+		private Vector2 currentPosition;
+		private Vector2 currentTarget;
+		private Vector2 nextTarget;
+		private const float movementStep = 0.02f;
+		private float currentStep;
+		private bool hasReachedDestination = true;
+
 		private int pickupTarget;
 		private int destinationTarget;
-		private int holdingAmount;
 
 		//Callbacks
 		private Func<int> pickupCall;
-		private Func<int, List<Vector2>> pickupRouteCall;
+		private Func<Vector2, int, List<Vector2>> pickupRouteCall;
 		private Func<int, int> collectCall;
-		private Func<int, List<Vector2>> deliveryRouteCall;
+		private Func<Vector2, int, List<Vector2>> deliveryRouteCall;
 		private Func<int, int> deliveryCall;
 
 		public void Init(Sprite square,
 			Func<int> pickup,
-			Func<int, List<Vector2>> pickupRoute,
+			Func<Vector2, int, List<Vector2>> pickupRoute,
 			Func<int, int> collect,
-			Func<int, List<Vector2>> deliveryRoute,
+			Func<Vector2, int, List<Vector2>> deliveryRoute,
 			Func<int, int> delivery
 		)
 		{
-			transform.position = new Vector3(5, 3, transform.position.z);
+			currentPosition = new Vector3(5, 3, 0);
+			transform.position = currentPosition;
 
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
+			spriteRenderer.color = Color.blue;
 			
 			pickupCall = pickup;
 			pickupRouteCall = pickupRoute;
@@ -47,6 +57,7 @@ namespace Cats_Inc.Scripts.World
 
 			customText = new CustomText(transform);
 			customText.ChangeText("Idle");
+			customText.ChangeColor(Color.blue);
 		}
 
 		public void Launch()
@@ -57,6 +68,27 @@ namespace Cats_Inc.Scripts.World
 			StartCoroutine(MoverBehaviour());
 		}
 
+		public void FixedUpdate()
+		{
+			if (hasReachedDestination) return;
+			currentStep += movementStep;
+
+			if (currentStep > 1)
+			{
+				if (activeRoute.IndexOf(nextTarget) + 1 >= activeRoute.Count)
+				{
+					hasReachedDestination = true; 
+					return;
+				}
+				
+				currentStep = 0;
+				currentTarget = nextTarget;
+				nextTarget = activeRoute[activeRoute.IndexOf(nextTarget) + 1];
+			}
+			
+			transform.position = Vector2.Lerp(currentTarget, nextTarget, currentStep);
+		}
+
 		private IEnumerator MoverBehaviour()
 		{
 			while (shouldPickup)
@@ -64,6 +96,7 @@ namespace Cats_Inc.Scripts.World
 				customText.ChangeText("Idle");
 
 				//Wait until pickup is available, if so: reserve amount and gain the route
+				currentPosition = transform.position;
 				yield return new WaitUntil(AttemptPickupRequest);
 
 				//Walk the route
@@ -76,6 +109,7 @@ namespace Cats_Inc.Scripts.World
 				//Keep delivering to destinations until the holdingAmount is empty
 				while (holdingAmount > 0)
 				{
+					currentPosition = transform.position;
 					//Request route to available destination
 					yield return new WaitUntil(AttemptDeliveryRequest);
 
@@ -90,7 +124,12 @@ namespace Cats_Inc.Scripts.World
 
 		private IEnumerator WalkRoute()
 		{
-			yield return new WaitForSeconds(0.5f); //todo actually walk the route......
+			currentStep = 0;
+			currentTarget = activeRoute[0];
+			nextTarget = activeRoute[1];
+			
+			hasReachedDestination = currentTarget == nextTarget;
+			yield return new WaitUntil(() => hasReachedDestination);
 		}
 
 		private bool AttemptPickupRequest()
@@ -98,13 +137,13 @@ namespace Cats_Inc.Scripts.World
 			pickupTarget = pickupCall();
 			if (pickupTarget == -1) return false;
 
-			activeRoute = pickupRouteCall(pickupTarget);
+			activeRoute = pickupRouteCall(currentPosition, pickupTarget);
 			return true;
 		}
 
 		private bool AttemptDeliveryRequest()
 		{
-			activeRoute = deliveryRouteCall(holdingAmount);
+			activeRoute = deliveryRouteCall(currentPosition, holdingAmount);
 			return activeRoute != null;
 		}
 	}

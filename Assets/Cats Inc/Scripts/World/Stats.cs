@@ -4,6 +4,7 @@
 	{
 		public Stats(int importTruckMax, int importMoverMax, int importRackMax)
 		{
+			//Import
 			this.importTruckMax = importTruckMax;
 			this.importMoverMax = importMoverMax;
 			this.importRackMax = importRackMax;

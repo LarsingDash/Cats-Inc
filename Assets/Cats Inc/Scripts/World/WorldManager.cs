@@ -26,7 +26,7 @@ namespace Cats_Inc.Scripts.World
 		{
 			worldBounds = new Rect(0, 0, 10, 50);
 
-			stats = new Stats(10, 2, 20);
+			stats = new Stats(10, 2, 9);
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
@@ -41,7 +41,7 @@ namespace Cats_Inc.Scripts.World
 				transform =
 				{
 					parent = transform,
-					position = new Vector3(worldBounds.x + worldBounds.width / 2, worldBounds.y + worldBounds.height / 2, 0),
+					position = new Vector3(worldBounds.x + worldBounds.width / 2, worldBounds.y + worldBounds.height / 2, 10),
 					localScale = new Vector3(worldBounds.width, worldBounds.height, 0)
 				}
 			};
@@ -101,15 +101,15 @@ namespace Cats_Inc.Scripts.World
 			return -1;
 		}
 		
-		private List<Vector2> ImportRouteForPickup(int dock)
+		private List<Vector2> ImportRouteForPickup(Vector2 start, int dock)
 		{
-			//todo use dock index
-			return GenerateRoute();
+			//todo change to custom interaction point
+			return GenerateRoute(start, importDocks[dock].transform.position);
 		}
 		
-		private List<Vector2> ImportRouteForDelivery(int holdingAmount)
+		private List<Vector2> ImportRouteForDelivery(Vector2 start, int holdingAmount)
 		{
-			StorageRack targetRack;
+			StorageRack targetRack = null;
 			var freeRackFound = false;
 			foreach (var storageRack in racks.Where(storageRack => !storageRack.IsFull()))
 			{
@@ -117,8 +117,8 @@ namespace Cats_Inc.Scripts.World
 				freeRackFound = true;
 			}
 
-			//todo use targetRack for route
-			return freeRackFound ? GenerateRoute() : null;
+			//todo change to custom interaction point
+			return freeRackFound ? GenerateRoute(start, targetRack.transform.position) : null;
 		}
 
 		private int ImportCollect(int dock)
@@ -127,9 +127,9 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Other **/
-		private List<Vector2> GenerateRoute()
+		private List<Vector2> GenerateRoute(Vector2 start, Vector2 end)
 		{
-			return new List<Vector2>();
+			return new List<Vector2> {start, end};
 		}
 	}
 }

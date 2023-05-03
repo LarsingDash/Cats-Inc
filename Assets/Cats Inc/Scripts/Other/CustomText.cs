@@ -24,5 +24,10 @@ namespace Cats_Inc.Scripts.Other
 		{
 			textMesh.text = text;
 		}
+
+		public void ChangeColor(Color color)
+		{
+			textMesh.color = color;
+		}
 	}
 }

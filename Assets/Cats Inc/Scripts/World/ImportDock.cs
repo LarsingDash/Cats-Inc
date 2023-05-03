@@ -21,7 +21,7 @@ namespace Cats_Inc.Scripts.World
 
 		public void Init(Sprite square)
 		{
-			transform.position = new Vector3(5, 1, transform.position.z);
+			transform.position = new Vector3(5, 1, 5);
 			
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
