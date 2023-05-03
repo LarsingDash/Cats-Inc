@@ -9,27 +9,19 @@ namespace Assets.Scripts.World
 		//Components
 		private WorldManager worldManager;
 		private SpriteRenderer spriteRenderer;
-		
+
 		//Truck
 		private bool shouldImport;
-		private bool isTruckDocked = false;
+		private bool isTruckDocked;
+		private Action dockAction;
 
-		public void Init(WorldManager parent, Sprite square)
+		public void Init(WorldManager parent, Action action, Sprite square)
 		{
 			worldManager = parent;
-			
+			dockAction = action;
+
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
-			spriteRenderer.color = Color.blue;
-		}
-
-		private void FixedUpdate()
-		{
-			if (Input.GetButton("Submit"))
-			{
-				isTruckDocked = false;
-				spriteRenderer.color = Color.red;
-			}
 		}
 
 		public void Launch()
@@ -44,12 +36,15 @@ namespace Assets.Scripts.World
 			{
 				//Truck Delay (can stack another truck in a queue while one is still at the dock
 				yield return new WaitForSeconds(2.5f);
-				
+
 				//Wait till the dock is empty
 				yield return new WaitWhile(() => isTruckDocked);
 
 				//Dock new truck
 				DockTruck();
+				
+				//todo REMOVE
+				shouldImport = false;
 			}
 		}
 
@@ -58,6 +53,14 @@ namespace Assets.Scripts.World
 			isTruckDocked = true;
 			print("Docked");
 			spriteRenderer.color = Color.blue;
+
+			dockAction();
+		}
+
+		public void ReleaseTruck()
+		{
+			isTruckDocked = false;
+			spriteRenderer.color = Color.red;
 		}
 	}
 }

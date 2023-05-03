@@ -13,7 +13,10 @@ namespace Assets.Scripts.World
 		public Sprite square;
 		private GameObject background;
 
+		//Import
 		private readonly List<ImportDock> docks = new();
+		private readonly List<Mover> importMovers = new();
+		private Storage storage;
 
 		private void Start()
 		{
@@ -57,7 +60,42 @@ namespace Assets.Scripts.World
 			var dock = dockObject.GetComponent<ImportDock>();
 			docks.Add(dock);
 
-			dock.Init(this, square);
+			dock.Init(this, DockTruck, square);
+
+			//Storage
+			var storageObject = new GameObject("Storage") { transform = { parent = transform } };
+			storageObject.AddComponent<Storage>();
+			storage = storageObject.GetComponent<Storage>();
+			storage.Init(100);
+			
+			//Mover
+			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
+			moverObject.AddComponent<Mover>();
+			var mover = moverObject.GetComponent<Mover>();
+			importMovers.Add(mover);
+			
+			mover.Init(0, ImportCollect, storage.Deliver);
+		}
+
+		//todo make coroutine that waits till truck is empty: waitWhile(previousAmount != dock.getAmountRemaining())
+		private void DockTruck()
+		{
+			//todo check for available movers and how many are needed to empty the truck
+			var availableMover = importMovers[0];
+			availableMover.Notify(new List<Vector2>());
+		}
+
+		private void ImportCollect(int index)
+		{
+			print($"Collected by {index}");
+			
+			//todo check how much has been collected
+			importMovers[index].Collect(0);
+			
+			//Todo see todo DockTruck()
+			docks[0].ReleaseTruck();
+			
+			importMovers[index].SendToDeliver(new List<Vector2>());
 		}
 	}
 }
