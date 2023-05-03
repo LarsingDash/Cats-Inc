@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts.Other;
 using UnityEngine;
 
@@ -8,29 +9,28 @@ namespace Assets.Scripts.World
 	{
 		//Publicly accessible data
 		public Rect worldBounds { get; private set; }
+		public static Stats stats { get; private set; }
 
 		//Components
 		public Sprite square;
 		private GameObject background;
 
 		//Import
-		private readonly List<ImportDock> docks = new();
+		private readonly List<ImportDock> importDocks = new();
 		private readonly List<Mover> importMovers = new();
-		private Storage storage;
+		private readonly List<StorageRack> racks = new();
 
+		/** Init **/
 		private void Start()
 		{
+			//todo fix when height = 20
 			worldBounds = new Rect(0, 0, 10, 50);
+
+			stats = new Stats(10, 2, 19);
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
 			GameController.finishStart(GameController.StartupOption.WorldLaunch, Launch);
-		}
-
-		private void Launch()
-		{
-			foreach (var dock in docks)
-				dock.Launch();
 		}
 
 		private void SetBackground()
@@ -52,50 +52,85 @@ namespace Assets.Scripts.World
 			sprite.color = new Color(0.2f, 0.2f, 0.2f);
 		}
 
+		/** Creation **/
 		private void CreateImport()
 		{
 			//Dock
 			var dockObject = new GameObject("Import Dock") { transform = { parent = transform } };
 			dockObject.AddComponent<ImportDock>();
 			var dock = dockObject.GetComponent<ImportDock>();
-			docks.Add(dock);
+			importDocks.Add(dock);
 
-			dock.Init(this, DockTruck, square);
+			dock.Init(square);
 
 			//Storage
-			var storageObject = new GameObject("Storage") { transform = { parent = transform } };
-			storageObject.AddComponent<Storage>();
-			storage = storageObject.GetComponent<Storage>();
-			storage.Init(100);
+			var storageObject = new GameObject("Storage Rack") { transform = { parent = transform } };
+			storageObject.AddComponent<StorageRack>();
+			var rack = storageObject.GetComponent<StorageRack>();
+			racks.Add(rack);
 			
+			rack.Init(square);
+
 			//Mover
 			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
 			moverObject.AddComponent<Mover>();
 			var mover = moverObject.GetComponent<Mover>();
 			importMovers.Add(mover);
-			
-			mover.Init(0, ImportCollect, storage.Deliver);
+
+			mover.Init(ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRouteForDelivery, rack.Deliver);
 		}
 
-		//todo make coroutine that waits till truck is empty: waitWhile(previousAmount != dock.getAmountRemaining())
-		private void DockTruck()
+		private void Launch()
 		{
-			//todo check for available movers and how many are needed to empty the truck
-			var availableMover = importMovers[0];
-			availableMover.Notify(new List<Vector2>());
+			foreach (var dock in importDocks)
+				dock.Launch();
+
+			foreach (var mover in importMovers)
+				mover.Launch();
 		}
 
-		private void ImportCollect(int index)
+		/** Import **/
+		private int ImportRequestPickup()
 		{
-			print($"Collected by {index}");
-			
-			//todo check how much has been collected
-			importMovers[index].Collect(0);
-			
-			//Todo see todo DockTruck()
-			docks[0].ReleaseTruck();
-			
-			importMovers[index].SendToDeliver(new List<Vector2>());
+			for (var i = 0; i < importDocks.Count; i++)
+			{
+				if (importDocks[i].AttemptToClaim())
+					return i;
+			}
+
+			return -1;
+		}
+		
+		private List<Vector2> ImportRouteForPickup(int dock)
+		{
+			//todo use dock index
+			return GenerateRoute();
+		}
+		
+		private List<Vector2> ImportRouteForDelivery(int holdingAmount)
+		{
+			StorageRack targetRack;
+			var freeRackFound = false;
+			foreach (var storageRack in racks.Where(storageRack => !storageRack.IsFull()))
+			{
+				targetRack = storageRack;
+				freeRackFound = true;
+			}
+
+			//todo use targetRack for route
+			return freeRackFound ? GenerateRoute() : null;
+		}
+
+		private int ImportCollect(int dock)
+		{
+			print("Collected");
+			return importDocks[dock].Pickup();
+		}
+
+		/** Other **/
+		private List<Vector2> GenerateRoute()
+		{
+			return new List<Vector2>();
 		}
 	}
 }
