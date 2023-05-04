@@ -20,8 +20,8 @@ namespace Cats_Inc.Scripts.World
 		private Vector2 currentPosition;
 		private Vector2 currentTarget;
 		private Vector2 nextTarget;
-		private const float movementStep = 0.02f;
-		private float currentStep;
+		private const int movementStep = 5; //0 - 100. 100 % movementStep HAS TO BE 0
+		private int currentStep;
 		private bool hasReachedDestination = true;
 
 		private int pickupTarget;
@@ -44,7 +44,7 @@ namespace Cats_Inc.Scripts.World
 			Func<int, int, int> delivery
 		)
 		{
-			currentPosition = new Vector3(5, 3, 0);
+			currentPosition = new Vector3(5, 6, 0);
 			transform.position = currentPosition;
 
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
@@ -76,7 +76,7 @@ namespace Cats_Inc.Scripts.World
 			if (hasReachedDestination) return;
 			currentStep += movementStep;
 
-			if (currentStep > 1)
+			if (currentStep > 100)
 			{
 				if (activeRoute.IndexOf(nextTarget) + 1 >= activeRoute.Count)
 				{
@@ -89,7 +89,16 @@ namespace Cats_Inc.Scripts.World
 				nextTarget = activeRoute[activeRoute.IndexOf(nextTarget) + 1];
 			}
 			
-			transform.position = Vector2.Lerp(currentTarget, nextTarget, currentStep);
+			transform.position = Vector2.Lerp(currentTarget, nextTarget, currentStep / 100f);
+			
+			//Temp
+			var col = CalculateColor();
+			spriteRenderer.color = new Color(0, col, 1 - col);
+		}
+
+		private float CalculateColor()
+		{
+			return 0.5f * (float) Math.Sin(2 * Math.PI * (currentStep / 100f) - 0.5 * Math.PI) + 0.5f;
 		}
 
 		private IEnumerator MoverBehaviour()

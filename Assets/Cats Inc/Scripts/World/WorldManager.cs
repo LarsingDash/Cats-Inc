@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Cats_Inc.Scripts.Other;
 using UnityEngine;
 
@@ -61,6 +60,7 @@ namespace Cats_Inc.Scripts.World
 			importDocks.Add(dock);
 
 			dock.Init(square);
+			dock.transform.Translate(-3,0,0);
 
 			//Storage
 			var storageObject = new GameObject("Storage Rack") { transform = { parent = transform } };
@@ -69,14 +69,6 @@ namespace Cats_Inc.Scripts.World
 			racks.Add(rack);
 			
 			rack.Init(square);
-			
-			var otherStorage = new GameObject("Second storage Rack") { transform = { parent = transform } };
-			otherStorage.AddComponent<StorageRack>();
-			var otherRack = otherStorage.GetComponent<StorageRack>();
-			racks.Add(otherRack);
-			
-			otherRack.Init(square);
-			otherRack.transform.Translate(2,0,0);
 
 			//Mover
 			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
@@ -147,9 +139,69 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Other **/
-		private List<Vector2> GenerateRoute(Vector2 start, Vector2 end)
+		private static List<Vector2> GenerateRoute(Vector2 start, Vector2 end)
 		{
-			return new List<Vector2> {start, end};
+			//Create route and add start
+			var route = new List<Vector2> {start};
+			
+			//Make sure the start != end
+			if (start == end)
+			{
+				route.Add(end);
+				return route;
+			}
+
+			//Calculate the halfway height of the 2 horizontal points
+			var halfwayHeight = (int) (start.y + end.y) / 2;
+			var halfwayStart = new Vector2(start.x, halfwayHeight);
+			var halfwayEnd = new Vector2(end.x, halfwayHeight);
+
+			var verticalStep = end.y - start.y > 0 ? Vector2.up : Vector2.down;
+			var firstVerPoint = new Vector2(start.x, start.y);
+			for (var i = 0; i < 10; i++)
+			{
+				firstVerPoint += verticalStep;
+				if (firstVerPoint == halfwayStart) break;
+				
+				route.Add(new Vector2(firstVerPoint.x, firstVerPoint.y));
+			}
+			
+			//Add starting horizontal
+			route.Add(halfwayStart);
+
+			//Fill horizontal section
+			var horizontalStep = end.x - start.x > 0 ? Vector2.right : Vector2.left;
+			var horPoint = new Vector2(halfwayStart.x, halfwayStart.y);
+			for (var i = 0; i < 10; i++)
+			{
+				horPoint += horizontalStep;
+				if (horPoint == halfwayEnd) break;
+				
+				route.Add(new Vector2(horPoint.x, horPoint.y));
+			}
+			
+			//Add ending horizontal
+			route.Add(halfwayEnd);
+			
+			var secondVerPoint = new Vector2(halfwayEnd.x, halfwayEnd.y);
+			for (var i = 0; i < 10; i++)
+			{
+				secondVerPoint += verticalStep;
+				if (secondVerPoint == end) break;
+				
+				route.Add(new Vector2(secondVerPoint.x, secondVerPoint.y));
+			}
+
+			//Add end
+			route.Add(end);
+
+			// print("--------------" + start + "---" + end);
+			// foreach (var point in route)
+			// {
+			// 	print(point);
+			// }
+
+			return route;
 		}
 	}
 }
