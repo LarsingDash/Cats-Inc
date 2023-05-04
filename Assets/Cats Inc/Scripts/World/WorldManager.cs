@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cats_Inc.Scripts.Other;
-using TMPro;
 using UnityEngine;
 
 namespace Cats_Inc.Scripts.World
@@ -26,7 +25,7 @@ namespace Cats_Inc.Scripts.World
 		{
 			worldBounds = new Rect(0, 0, 10, 50);
 
-			stats = new Stats(10, 2, 9);
+			stats = new Stats(10, 2, 7);
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
@@ -70,6 +69,14 @@ namespace Cats_Inc.Scripts.World
 			racks.Add(rack);
 			
 			rack.Init(square);
+			
+			var otherStorage = new GameObject("Second storage Rack") { transform = { parent = transform } };
+			otherStorage.AddComponent<StorageRack>();
+			var otherRack = otherStorage.GetComponent<StorageRack>();
+			racks.Add(otherRack);
+			
+			otherRack.Init(square);
+			otherRack.transform.Translate(2,0,0);
 
 			//Mover
 			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
@@ -77,7 +84,7 @@ namespace Cats_Inc.Scripts.World
 			var mover = moverObject.GetComponent<Mover>();
 			importMovers.Add(mover);
 
-			mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRouteForDelivery, rack.Deliver);
+			mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRequestDelivery, ImportRouteForDelivery, ImportDeliver);
 		}
 
 		private void Launch()
@@ -106,24 +113,37 @@ namespace Cats_Inc.Scripts.World
 			//todo change to custom interaction point
 			return GenerateRoute(start, importDocks[dock].transform.position);
 		}
-		
-		private List<Vector2> ImportRouteForDelivery(Vector2 start, int holdingAmount)
+
+		private int ImportRequestDelivery()
 		{
-			StorageRack targetRack = null;
-			var freeRackFound = false;
-			foreach (var storageRack in racks.Where(storageRack => !storageRack.IsFull()))
+			var rackIndex = -1;
+
+			for (var i = 0; i < racks.Count; i++)
 			{
-				targetRack = storageRack;
-				freeRackFound = true;
+				if (!racks[i].IsFull())
+				{
+					rackIndex = i;
+					break;
+				}
 			}
 
+			return rackIndex;
+		}
+		
+		private List<Vector2> ImportRouteForDelivery(Vector2 start, int targetRack)
+		{
 			//todo change to custom interaction point
-			return freeRackFound ? GenerateRoute(start, targetRack.transform.position) : null;
+			return GenerateRoute(start, racks[targetRack].transform.position);
 		}
 
 		private int ImportCollect(int dock)
 		{
 			return importDocks[dock].Pickup();
+		}
+
+		private int ImportDeliver(int target, int amount)
+		{
+			return racks[target].Deliver(amount);
 		}
 
 		/** Other **/

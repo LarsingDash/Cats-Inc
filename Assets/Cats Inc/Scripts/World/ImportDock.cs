@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
 using Cats_Inc.Scripts.Other;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 
 namespace Cats_Inc.Scripts.World

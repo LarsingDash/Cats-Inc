@@ -31,15 +31,17 @@ namespace Cats_Inc.Scripts.World
 		private Func<int> pickupCall;
 		private Func<Vector2, int, List<Vector2>> pickupRouteCall;
 		private Func<int, int> collectCall;
+		private Func<int> deliveryRequestCall;
 		private Func<Vector2, int, List<Vector2>> deliveryRouteCall;
-		private Func<int, int> deliveryCall;
+		private Func<int, int, int> deliveryCall;
 
 		public void Init(Sprite square,
 			Func<int> pickup,
 			Func<Vector2, int, List<Vector2>> pickupRoute,
 			Func<int, int> collect,
+			Func<int> deliveryRequest,
 			Func<Vector2, int, List<Vector2>> deliveryRoute,
-			Func<int, int> delivery
+			Func<int, int, int> delivery
 		)
 		{
 			currentPosition = new Vector3(5, 3, 0);
@@ -51,8 +53,9 @@ namespace Cats_Inc.Scripts.World
 			
 			pickupCall = pickup;
 			pickupRouteCall = pickupRoute;
-			deliveryRouteCall = deliveryRoute;
 			collectCall = collect;
+			deliveryRequestCall = deliveryRequest;
+			deliveryRouteCall = deliveryRoute;
 			deliveryCall = delivery;
 
 			customText = new CustomText(transform);
@@ -116,7 +119,7 @@ namespace Cats_Inc.Scripts.World
 					//Walk the route
 					yield return WalkRoute();
 
-					holdingAmount = deliveryCall(holdingAmount);
+					holdingAmount = deliveryCall(destinationTarget, holdingAmount);
 					customText.ChangeText(holdingAmount.ToString());
 				}
 			}
@@ -143,8 +146,11 @@ namespace Cats_Inc.Scripts.World
 
 		private bool AttemptDeliveryRequest()
 		{
-			activeRoute = deliveryRouteCall(currentPosition, holdingAmount);
-			return activeRoute != null;
+			destinationTarget = deliveryRequestCall();
+			if (destinationTarget == -1) return false;
+			
+			activeRoute = deliveryRouteCall(currentPosition, destinationTarget);
+			return true;
 		}
 	}
 }
