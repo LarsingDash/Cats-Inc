@@ -58,6 +58,9 @@ namespace Cats_Inc.Scripts.Other
 				
 				//Hide startup screen
 				startup[StartupOption.StartupEnd]();
+
+				//Clear memory
+				startup.Clear();
 			}
 			else
 			{

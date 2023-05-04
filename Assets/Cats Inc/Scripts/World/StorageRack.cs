@@ -12,6 +12,7 @@ namespace Cats_Inc.Scripts.World
 		//Values
 		private int storedAmount;
 
+		/** Init **/
 		public void Init(Sprite square)
 		{
 			transform.position = new Vector3(5, 9, 5);
@@ -23,11 +24,13 @@ namespace Cats_Inc.Scripts.World
 			customText.ChangeText("Empty");
 		}
 
+		/** Mover interaction **/
 		public bool IsFull()
 		{
 			return storedAmount >= WorldManager.stats.importRackMax;
 		}
 
+		//Increases StoredAmount and returns any leftover amount that didn't fit within the max capacity
 		public int Deliver(int amount)
 		{
 			var max = WorldManager.stats.importRackMax;
@@ -45,6 +48,7 @@ namespace Cats_Inc.Scripts.World
 			return 0;
 		}
 
+		/** Other **/
 		private void UpdateText(int max)
 		{
 			customText.ChangeText(storedAmount == max ? "Full" : storedAmount.ToString());

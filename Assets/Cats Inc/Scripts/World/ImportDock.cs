@@ -16,6 +16,7 @@ namespace Cats_Inc.Scripts.World
 		private int amountRemaining { get; set; }
 		private int amountReserved;
 
+		/** Init **/
 		public void Init(Sprite square)
 		{
 			transform.position = new Vector3(5, 1, 5);
@@ -36,23 +37,24 @@ namespace Cats_Inc.Scripts.World
 			StartCoroutine(DockBehaviour());
 		}
 
+		/** Main **/
+		//Loop: Dock new truck - Wait for truck to be emptied - Release truck - Wait for new truck
 		private IEnumerator DockBehaviour()
 		{
+			//Stops when factory is unloaded //todo
 			while (shouldImport)
 			{
-				//Truck Delay (can stack another truck in a queue while one is still at the dock
-				yield return new WaitForSeconds(2.5f);
-
-				//Dock new truck
 				DockTruck();
 
-				//Wait till the truck is empty
 				yield return new WaitWhile(() => amountRemaining > 0);
 
 				ReleaseTruck();
+				
+				yield return new WaitForSeconds(2.5f); //todo stat
 			}
 		}
 
+		/** Dock / Release **/
 		private void DockTruck()
 		{
 			//Refill truck
@@ -66,6 +68,8 @@ namespace Cats_Inc.Scripts.World
 			customText.ChangeText("Waiting");
 		}
 
+		/** Mover interaction **/
+		//Returns / Checks if there is stock available to pickup (keeping reservations in mind)
 		public bool AttemptToClaim()
 		{
 			if (amountReserved >= amountRemaining) return false;
@@ -74,6 +78,7 @@ namespace Cats_Inc.Scripts.World
 			return true;
 		}
 
+		//Lowers amountRemaining and amountReserved - Returns amount of stock actually picked up (in case max mover amount > amountRemaining)
 		public int Pickup()
 		{
 			var moverMax = WorldManager.stats.importMoverMax;

@@ -23,14 +23,17 @@ namespace Cats_Inc.Scripts.World
 		private void Start()
 		{
 			worldBounds = new Rect(0, 0, 10, 50);
+			stats = new Stats(10, 2, 7); //todo move to DataLoader JSON's
 
-			stats = new Stats(10, 2, 7);
+			//Check if it's the first time playing, if so; make basic files
+			DataLoader.CheckSavedData();
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
 			GameController.finishStart(GameController.StartupOption.WorldLaunch, Launch);
 		}
 
+		//Creates the world background
 		private void SetBackground()
 		{
 			//Create background object
@@ -51,6 +54,7 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Creation **/
+		//Creates the Import section according to the values received by the DataLoader
 		private void CreateImport()
 		{
 			//Dock
@@ -58,10 +62,10 @@ namespace Cats_Inc.Scripts.World
 			dockObject.AddComponent<ImportDock>();
 			var dock = dockObject.GetComponent<ImportDock>();
 			importDocks.Add(dock);
-
+			
 			dock.Init(square);
 			dock.transform.Translate(-3,0,0);
-
+			
 			//Storage
 			var storageObject = new GameObject("Storage Rack") { transform = { parent = transform } };
 			storageObject.AddComponent<StorageRack>();
@@ -69,16 +73,17 @@ namespace Cats_Inc.Scripts.World
 			racks.Add(rack);
 			
 			rack.Init(square);
-
+			
 			//Mover
 			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
 			moverObject.AddComponent<Mover>();
 			var mover = moverObject.GetComponent<Mover>();
 			importMovers.Add(mover);
-
+			
 			mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRequestDelivery, ImportRouteForDelivery, ImportDeliver);
 		}
 
+		//Starts all coroutines
 		private void Launch()
 		{
 			foreach (var dock in importDocks)
@@ -89,6 +94,7 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Import **/
+		//Find and return the index of a truck that has claimable stock left (returns -1 if none were found)
 		private int ImportRequestPickup()
 		{
 			for (var i = 0; i < importDocks.Count; i++)
@@ -100,45 +106,46 @@ namespace Cats_Inc.Scripts.World
 			return -1;
 		}
 		
+		//Finds the closest interaction point for the given dock and returns the generated route
 		private List<Vector2> ImportRouteForPickup(Vector2 start, int dock)
 		{
 			//todo change to custom interaction point
 			return GenerateRoute(start, importDocks[dock].transform.position);
 		}
 
+		//Find and return the index of a rack that has available space (returns -1 if none were found)
 		private int ImportRequestDelivery()
 		{
-			var rackIndex = -1;
-
 			for (var i = 0; i < racks.Count; i++)
 			{
 				if (!racks[i].IsFull())
-				{
-					rackIndex = i;
-					break;
-				}
+					return i;
 			}
 
-			return rackIndex;
+			return -1;
 		}
 		
+		//Finds the closest interaction point for the given rack and returns the generated route
 		private List<Vector2> ImportRouteForDelivery(Vector2 start, int targetRack)
 		{
 			//todo change to custom interaction point
 			return GenerateRoute(start, racks[targetRack].transform.position);
 		}
 
-		private int ImportCollect(int dock)
+		//Forwards the pickup / collect request to the targeted dock
+		private int ImportCollect(int target)
 		{
-			return importDocks[dock].Pickup();
+			return importDocks[target].Pickup();
 		}
 
+		//Forwards the delivery request to the targeted rack
 		private int ImportDeliver(int target, int amount)
 		{
 			return racks[target].Deliver(amount);
 		}
 
 		/** Other **/
+		//Returns a list of points that make up a route from start to end (in 3 straight lines: | - |)
 		private static List<Vector2> GenerateRoute(Vector2 start, Vector2 end)
 		{
 			//Create route and add start
