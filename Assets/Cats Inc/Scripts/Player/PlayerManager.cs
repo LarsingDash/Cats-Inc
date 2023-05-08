@@ -27,5 +27,10 @@ namespace Cats_Inc.Scripts.Player
         {
             print("Finished Startup Sequence");
         }
+
+        public static void Debug(string text)
+        {
+            print(text);
+        }
     }
 }

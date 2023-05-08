@@ -13,14 +13,13 @@ namespace Cats_Inc.Scripts.World
 
 		//Truck
 		private bool shouldImport;
-		private int amountRemaining { get; set; }
+		
+		private int amountRemaining;
 		private int amountReserved;
 
 		/** Init **/
 		public void Init(Sprite square)
 		{
-			transform.position = new Vector3(5, 1, 5);
-			
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
 
@@ -55,10 +54,13 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Dock / Release **/
+		private const int baseSize = 10;
+		private const int additionSize = 2;
+
 		private void DockTruck()
 		{
 			//Refill truck
-			amountRemaining = WorldManager.stats.importTruckMax;
+			amountRemaining = baseSize + additionSize * (DataManager.GetLevel(ImportVars.DockSize) - 1);
 			
 			customText.ChangeText(amountRemaining.ToString());
 		}
@@ -73,7 +75,7 @@ namespace Cats_Inc.Scripts.World
 		public bool AttemptToClaim()
 		{
 			if (amountReserved >= amountRemaining) return false;
-			amountReserved += WorldManager.stats.importMoverMax;
+			amountReserved += Mover.CalculateMoverSize(DataManager.GetLevel(ImportVars.MoverSize));
 
 			return true;
 		}
@@ -81,7 +83,7 @@ namespace Cats_Inc.Scripts.World
 		//Lowers amountRemaining and amountReserved - Returns amount of stock actually picked up (in case max mover amount > amountRemaining)
 		public int Pickup()
 		{
-			var moverMax = WorldManager.stats.importMoverMax;
+			var moverMax = Mover.CalculateMoverSize(DataManager.GetLevel(ImportVars.MoverSize));
 			var pickup = Math.Min(amountRemaining, moverMax);
 
 			amountRemaining = Math.Max(0, amountRemaining - pickup);

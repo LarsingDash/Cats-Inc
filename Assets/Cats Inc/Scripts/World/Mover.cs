@@ -58,7 +58,6 @@ namespace Cats_Inc.Scripts.World
 			deliveryCall = delivery;
 			
 			//Init
-			currentPosition = new Vector3(5, 6, 0);
 			transform.position = currentPosition;
 
 			//Adding components
@@ -188,6 +187,14 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Other **/
+		private const int baseSize = 2;
+		private const int additionSize = 2;
+		
+		public static int CalculateMoverSize(int level)
+		{
+			return baseSize + additionSize * (level - 1);
+		}
+		
 		private float CalculateColor()
 		{
 			return 0.5f * (float)Math.Sin(2 * Math.PI * (currentStep / 100f) - 0.5 * Math.PI) + 0.5f;

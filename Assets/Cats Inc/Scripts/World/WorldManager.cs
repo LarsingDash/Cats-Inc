@@ -8,7 +8,6 @@ namespace Cats_Inc.Scripts.World
 	{
 		//Publicly accessible data
 		public Rect worldBounds { get; private set; }
-		public static Stats stats { get; private set; }
 
 		//Components
 		public Sprite square;
@@ -23,10 +22,11 @@ namespace Cats_Inc.Scripts.World
 		private void Start()
 		{
 			worldBounds = new Rect(0, 0, 10, 50);
-			stats = new Stats(10, 2, 7); //todo move to DataLoader JSON's
 
 			//Check if it's the first time playing, if so; make basic files
-			DataLoader.CheckSavedData();
+			DataManager.CheckSavedData();
+			
+			DataManager.LoadFactory(DataManager.GetData(DataVars.RecentFactory).ToObject<int>());
 
 			GameController.finishStart(GameController.StartupOption.WorldBackground, SetBackground);
 			GameController.finishStart(GameController.StartupOption.WorldImport, CreateImport);
@@ -54,33 +54,60 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Creation **/
-		//Creates the Import section according to the values received by the DataLoader
+		//Creates the Import section according to the values received by the DataManager
 		private void CreateImport()
 		{
-			//Dock
-			var dockObject = new GameObject("Import Dock") { transform = { parent = transform } };
-			dockObject.AddComponent<ImportDock>();
-			var dock = dockObject.GetComponent<ImportDock>();
-			importDocks.Add(dock);
+			//Make container objects
+			var importTrans = new GameObject("Import") { transform = { parent = transform } }.transform;
 			
-			dock.Init(square);
-			dock.transform.Translate(-3,0,0);
+			var docksTrans = new GameObject("Docks") { transform = { parent = importTrans } }.transform;
+			var storageTrans = new GameObject("Storage") { transform = { parent = importTrans } }.transform;
+			var moverTrans = new GameObject("Movers") { transform = { parent = importTrans } }.transform;
+			
+			//Docks
+			for (var i = 0; i < DataManager.GetLevel(ImportVars.AmountOfDocks); i++)
+			{
+				var dockObject = new GameObject($"Import Dock {i}") { transform = { parent = docksTrans } };
+				dockObject.AddComponent<ImportDock>();
+				var dock = dockObject.GetComponent<ImportDock>();
+				importDocks.Add(dock);
+				
+				//todo make SpriteManager and move square there
+				dock.Init(square);
+				
+				//todo move docks to their correct places
+				// dock.transform.Translate(0, 0, 0);
+			}
 			
 			//Storage
-			var storageObject = new GameObject("Storage Rack") { transform = { parent = transform } };
-			storageObject.AddComponent<StorageRack>();
-			var rack = storageObject.GetComponent<StorageRack>();
-			racks.Add(rack);
+			for (var i = 0; i < DataManager.GetLevel(ImportVars.AmountOfRacks); i++)
+			{
+				var storageObject = new GameObject($"Storage Rack {i}") { transform = { parent = storageTrans } };
+				storageObject.AddComponent<StorageRack>();
+				var rack = storageObject.GetComponent<StorageRack>();
+				racks.Add(rack);
+				
+				rack.Init(square);
+				// rack.transform.Translate(0, 0, 0);
+			}
 			
-			rack.Init(square);
+			//Movers
+			for (var i = 0; i < DataManager.GetLevel(ImportVars.AmountOfMovers); i++)
+			{
+				//Mover
+				var moverObject = new GameObject($"Import Mover {i}") { transform = { parent = moverTrans } };
+				moverObject.AddComponent<Mover>();
+				var mover = moverObject.GetComponent<Mover>();
+				importMovers.Add(mover);
+				
+				mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRequestDelivery, ImportRouteForDelivery, ImportDeliver);
+				mover.transform.Translate(0, 0, 0);
+			}
 			
-			//Mover
-			var moverObject = new GameObject("Import Mover") { transform = { parent = transform } };
-			moverObject.AddComponent<Mover>();
-			var mover = moverObject.GetComponent<Mover>();
-			importMovers.Add(mover);
-			
-			mover.Init(square, ImportRequestPickup, ImportRouteForPickup, ImportCollect, ImportRequestDelivery, ImportRouteForDelivery, ImportDeliver);
+			//Move containers into position
+			docksTrans.transform.Translate(5,1, 5);
+			storageTrans.transform.Translate(5,9, 5);
+			moverTrans.transform.Translate(5,6, 0);
 		}
 
 		//Starts all coroutines
@@ -158,47 +185,65 @@ namespace Cats_Inc.Scripts.World
 				return route;
 			}
 
-			//Calculate the halfway height of the 2 horizontal points
+			//Decision making
+			var requiresHor = (int)start.x != (int)end.x;
+			var requiresVer = (int)start.y != (int)end.y;
+			
 			var halfwayHeight = (int) (start.y + end.y) / 2;
 			var halfwayStart = new Vector2(start.x, halfwayHeight);
 			var halfwayEnd = new Vector2(end.x, halfwayHeight);
-
+			
 			var verticalStep = end.y - start.y > 0 ? Vector2.up : Vector2.down;
-			var firstVerPoint = new Vector2(start.x, start.y);
-			for (var i = 0; i < 10; i++)
-			{
-				firstVerPoint += verticalStep;
-				if (firstVerPoint == halfwayStart) break;
-				
-				route.Add(new Vector2(firstVerPoint.x, firstVerPoint.y));
-			}
-			
-			//Add starting horizontal
-			route.Add(halfwayStart);
 
-			//Fill horizontal section
-			var horizontalStep = end.x - start.x > 0 ? Vector2.right : Vector2.left;
-			var horPoint = new Vector2(halfwayStart.x, halfwayStart.y);
-			for (var i = 0; i < 10; i++)
+			//First Vertical
+			if (requiresVer)
 			{
-				horPoint += horizontalStep;
-				if (horPoint == halfwayEnd) break;
+				var verPoint = new Vector2(start.x, start.y);
+				for (var i = 0; i < 10; i++)
+				{
+					verPoint += verticalStep;
+					if (verPoint == halfwayStart) break;
+
+					route.Add(new Vector2(verPoint.x, verPoint.y));
+				}
 				
-				route.Add(new Vector2(horPoint.x, horPoint.y));
-			}
-			
-			//Add ending horizontal
-			route.Add(halfwayEnd);
-			
-			var secondVerPoint = new Vector2(halfwayEnd.x, halfwayEnd.y);
-			for (var i = 0; i < 10; i++)
-			{
-				secondVerPoint += verticalStep;
-				if (secondVerPoint == end) break;
-				
-				route.Add(new Vector2(secondVerPoint.x, secondVerPoint.y));
+				//Add starting horizontal
+				route.Add(halfwayStart);
 			}
 
+			//Horizontal
+			if (requiresHor)
+			{
+				var horizontalStep = end.x - start.x > 0 ? Vector2.right : Vector2.left;
+				var horPoint = new Vector2(halfwayStart.x, halfwayStart.y);
+				for (var i = 0; i < 10; i++)
+				{
+					horPoint += horizontalStep;
+					if (horPoint == halfwayEnd) break;
+
+					route.Add(new Vector2(horPoint.x, horPoint.y));
+				}
+			}
+
+			//Second Vertical
+			if (requiresVer)
+			{
+				if (requiresHor)
+				{
+					//Add ending horizontal
+					route.Add(halfwayEnd);
+				}
+
+				var secondVerPoint = new Vector2(halfwayEnd.x, halfwayEnd.y);
+				for (var i = 0; i < 10; i++)
+				{
+					secondVerPoint += verticalStep;
+					if (secondVerPoint == end) break;
+
+					route.Add(new Vector2(secondVerPoint.x, secondVerPoint.y));
+				}	
+			}
+			
 			//Add end
 			route.Add(end);
 

@@ -15,8 +15,6 @@ namespace Cats_Inc.Scripts.World
 		/** Init **/
 		public void Init(Sprite square)
 		{
-			transform.position = new Vector3(5, 9, 5);
-
 			spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
 			spriteRenderer.sprite = square;
 
@@ -27,13 +25,13 @@ namespace Cats_Inc.Scripts.World
 		/** Mover interaction **/
 		public bool IsFull()
 		{
-			return storedAmount >= WorldManager.stats.importRackMax;
+			return storedAmount >= CalculateCapacity();
 		}
 
 		//Increases StoredAmount and returns any leftover amount that didn't fit within the max capacity
 		public int Deliver(int amount)
 		{
-			var max = WorldManager.stats.importRackMax;
+			var max = CalculateCapacity();
 			var difference = storedAmount + amount - max;
 
 			if (difference > 0)
@@ -49,6 +47,14 @@ namespace Cats_Inc.Scripts.World
 		}
 
 		/** Other **/
+		private const int baseSize = 10;
+		private const int additionSize = 2;
+		
+		private static int CalculateCapacity()
+		{
+			return baseSize + additionSize * (DataManager.GetLevel(ImportVars.RackSize) - 1);
+		}
+		
 		private void UpdateText(int max)
 		{
 			customText.ChangeText(storedAmount == max ? "Full" : storedAmount.ToString());
